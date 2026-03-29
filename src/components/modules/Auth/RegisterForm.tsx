@@ -6,30 +6,46 @@ import Link from 'next/link';
 
 const RegisterForm = () => {
     return (
-        <div className='max-w-xl mx-auto h-full'>
-            <div className='p-6 flex flex-col items-center justify-center gap-4 h-full '>
-                <h1 className='text-3xl font-semibold text-accent-foreground/80'>SignUp</h1>
-                <SocialLogin></SocialLogin>
-                <Input
-                    type='text'
-                    placeholder='Enter your name'
-                    className='p-4 py-6'
-                ></Input>
-                <Input
-                    alt='Email'
-                    type='email'
-                    placeholder='Enter your email'
-                    className='p-4 py-6'
-                ></Input>
-                <Input
-                    alt='Password'
-                    type='password'
-                    placeholder='Enter your password'
-                    className='p-4 py-6'
-                ></Input>
-
-                <Button className='md:px-10 font-medium'>Sign Up</Button>
-
+        <div className='w-full max-w-md mx-auto'>
+            <div className='space-y-6'>
+                <div className='space-y-2'>
+                    <h1 className='text-2xl md:text-3xl font-bold text-foreground'>Create Account</h1>
+                    <p className='text-muted-foreground text-sm'>Fill in your details to get started</p>
+                </div>
+                <SocialLogin />
+                <div className='space-y-4'>
+                    <div className='space-y-1.5'>
+                        <label className='text-sm font-medium text-foreground'>Full Name</label>
+                        <Input
+                            type='text'
+                            placeholder='John Doe'
+                            className='h-11'
+                        />
+                    </div>
+                    <div className='space-y-1.5'>
+                        <label className='text-sm font-medium text-foreground'>Email</label>
+                        <Input
+                            type='email'
+                            placeholder='you@example.com'
+                            className='h-11'
+                        />
+                    </div>
+                    <div className='space-y-1.5'>
+                        <label className='text-sm font-medium text-foreground'>Password</label>
+                        <Input
+                            type='password'
+                            placeholder='Create a password'
+                            className='h-11'
+                        />
+                    </div>
+                </div>
+                <Button className='w-full h-11 font-medium'>Create Account</Button>
+                <p className='text-center text-sm text-muted-foreground md:hidden'>
+                    Already have an account?{' '}
+                    <Link href='/login' className='text-primary font-medium hover:underline'>
+                        Sign In
+                    </Link>
+                </p>
             </div>
         </div>
     );

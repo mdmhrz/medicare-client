@@ -1,22 +1,39 @@
+'use client';
+
 import LoginForm from '@/components/modules/Auth/LoginForm';
+import ShieldIllustration from '@/components/modules/Auth/ShieldIllustration';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import React from 'react';
 
 const LoginPage = () => {
     return (
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-0 min-h-[calc(100dvh-30px)] px-6'>
-            <div className='bg-primary h-full flex flex-col items-center justify-center gap-4 text-white p-6 rounded-e-[30%]'>
-                <h1 className='text-4xl font-semibold'>Hello Friend!</h1>
-                <p>Register with your personal details to all sites features</p>
-                <Link href={"/register"}>
-                    <Button className='text-white bg-transparent md:px-10 font-medium' variant={"outline"}>Sign Up</Button>
-                </Link>
+        <>
+            {/* Left - Branded panel */}
+            <div className="relative flex flex-col items-center justify-center text-white p-8 md:p-12 animate-[fadeSlideIn_0.6s_ease-out]">
+                <div className="flex flex-col items-center text-center max-w-sm">
+                    <ShieldIllustration />
+                    <h1 className="text-3xl md:text-4xl font-bold mt-6 tracking-tight">
+                        Welcome to Medicare
+                    </h1>
+                    <p className="mt-3 text-white/70 text-sm leading-relaxed max-w-xs">
+                        Don&apos;t have an account yet? Create one now and start managing your healthcare journey.
+                    </p>
+                    <Link href="/register" className="mt-6">
+                        <Button
+                            variant="outline"
+                            className="text-white bg-white/10 hover:bg-white/20 border-white/30 px-8 font-medium transition-all duration-300"
+                        >
+                            Create Account
+                        </Button>
+                    </Link>
+                </div>
             </div>
-            <div>
-                <LoginForm></LoginForm>
+
+            {/* Right - Form panel */}
+            <div className="flex items-center justify-center bg-background p-6 md:p-12 animate-[fadeIn_0.5s_ease-out_0.2s_both]">
+                <LoginForm />
             </div>
-        </div>
+        </>
     );
 };
 
