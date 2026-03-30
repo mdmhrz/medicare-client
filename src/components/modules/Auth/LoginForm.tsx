@@ -1,3 +1,4 @@
+'use client'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import SocialLogin from './SocialLogin';
@@ -12,7 +13,6 @@ import { Eye, EyeOff } from 'lucide-react';
 import AppSubmitButton from '@/components/shared/form/AppSubmitButton';
 
 const LoginForm = () => {
-    const queryClient = useQueryClient();
     const [serverError, setServerError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -51,6 +51,13 @@ const LoginForm = () => {
                     <p className='text-muted-foreground text-sm'>Enter your credentials to access your account</p>
                 </div>
                 <SocialLogin />
+
+                {serverError && (
+                    <div className='flex items-start gap-2.5 rounded-md border border-destructive/40 bg-destructive/10 px-3.5 py-3 text-sm text-destructive'>
+                        <span className='mt-0.5 shrink-0'>&#9888;</span>
+                        <span>{serverError}</span>
+                    </div>
+                )}
 
                 <form
                     method='POST'
@@ -117,21 +124,22 @@ const LoginForm = () => {
                         }
                     </form.Field>
 
-                    {serverError && (
-                        <div className='flex items-start gap-2.5 rounded-md border border-destructive/40 bg-destructive/10 px-3.5 py-3 text-sm text-destructive'>
-                            <span className='mt-0.5 shrink-0'>&#9888;</span>
-                            <span>{serverError}</span>
-                        </div>
-                    )}
 
-                    <AppSubmitButton
-                        className='w-full h-11 font-medium'
-                        disabled={isPending}
-                        isPending={isPending}
-                        pendingLabel='Signing in...'
+                    <form.Subscribe
+                        selector={(s) => [s.canSubmit, s.isSubmitting] as const}
                     >
-                        Sign In
-                    </AppSubmitButton>
+                        {([canSubmit, isSubmitting]) => (
+                            <AppSubmitButton
+                                className='w-full h-11 font-medium'
+                                disabled={!canSubmit || isSubmitting || isPending}
+                                isPending={isSubmitting}
+                                pendingLabel='Signing in...'
+                            >
+                                Sign In
+                            </AppSubmitButton>
+                        )}
+
+                    </form.Subscribe>
 
                 </form>
 

@@ -6,12 +6,14 @@ import Image from 'next/image';
 
 
 const SocialLogin = () => {
-    // const handleGoogleLogin = async () => {
-    //     await authClient.signIn.social({
-    //         provider: "google",
-    //         callbackURL: `${env.NEXT_PUBLIC_FRONTEND_URL}/`,
-    //     });
-    // };
+    const handleGoogleLogin = async () => {
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+
+        const googleAuthUrl = `${baseUrl}/auth/login/google`;
+
+        // Redirect the user to the Google authentication URL
+        window.location.href = googleAuthUrl;
+    };
 
     return (
         <div className="w-full space-y-4 mt-2">
@@ -19,7 +21,7 @@ const SocialLogin = () => {
 
             {/* Google Button */}
             <Button
-                // onClick={handleGoogleLogin}
+                onClick={handleGoogleLogin}
                 variant="outline"
                 type="button"
                 className="w-full flex items-center gap-2 py-5.5"

@@ -24,11 +24,17 @@ export const loginAction = async (payload: IloginPayload): Promise<ILoginRespons
 
         await setTokenInCookies("accessToken", accessToken);
         await setTokenInCookies("refreshToken", refreshToken);
-        await setTokenInCookies("better-auth.session_token", token);
+        await setTokenInCookies("better-auth.session_token", token, 24 * 60 * 60);
 
 
         redirect("/dashboard");
     } catch (error: any) {
+        if (error && typeof error === "object" && "digest" in error && typeof error.digest === "string" && error.digest.startsWith("NEXT_REDIRECT")) {
+            // If the error is a redirect, re-throw it to let Next.js handle it
+            throw error;
+        }
+
+
         return {
             success: false,
             message: `Login failed: ${error.message || "Unknown error"}`,
