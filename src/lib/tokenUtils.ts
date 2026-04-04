@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { setCookie } from "./cookieUtils";
 
 
-const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_TOKEN as string;
+// const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
 
 
 const getTokenRemainingSeconds = (token: string): number => {
@@ -14,7 +14,7 @@ const getTokenRemainingSeconds = (token: string): number => {
 
 
     try {
-        const tokenPayload = JWT_ACCESS_SECRET ? jwt.verify(token, JWT_ACCESS_SECRET) as jwt.JwtPayload : jwt.decode(token) as jwt.JwtPayload;
+        const tokenPayload = jwt.decode(token) as jwt.JwtPayload;
 
         if (!tokenPayload || !tokenPayload.exp) {
             return 0;
@@ -34,7 +34,10 @@ export const setTokenInCookies = async (
     token: string,
     fallbackMaxAgeInSeconds: number = 24 * 60 * 60,
 ) => {
-    const maxAgeInSeconds = getTokenRemainingSeconds(token);
+    let maxAgeInSeconds;
+    if (name !== "better-auth.session_token") {
+        maxAgeInSeconds = getTokenRemainingSeconds(token);
+    }
     await setCookie(name, token, maxAgeInSeconds ? maxAgeInSeconds : fallbackMaxAgeInSeconds);
 
 }

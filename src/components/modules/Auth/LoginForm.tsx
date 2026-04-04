@@ -12,12 +12,12 @@ import AppField from '@/components/shared/form/AppField';
 import { Eye, EyeOff } from 'lucide-react';
 import AppSubmitButton from '@/components/shared/form/AppSubmitButton';
 
-const LoginForm = () => {
+const LoginForm = ({ redirectPath }: { redirectPath?: string | null }) => {
     const [serverError, setServerError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
 
     const { mutateAsync, isPending } = useMutation({
-        mutationFn: (payload: IloginPayload) => loginAction(payload)
+        mutationFn: (payload: IloginPayload) => loginAction(payload, redirectPath ?? undefined)
     })
 
     const form = useForm({
@@ -50,7 +50,7 @@ const LoginForm = () => {
                     <h1 className='text-2xl md:text-3xl font-bold text-foreground'>Sign In</h1>
                     <p className='text-muted-foreground text-sm'>Enter your credentials to access your account</p>
                 </div>
-                <SocialLogin />
+                <SocialLogin redirectPath={redirectPath ?? null} />
 
                 {serverError && (
                     <div className='flex items-start gap-2.5 rounded-md border border-destructive/40 bg-destructive/10 px-3.5 py-3 text-sm text-destructive'>

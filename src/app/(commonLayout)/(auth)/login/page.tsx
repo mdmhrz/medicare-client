@@ -1,11 +1,19 @@
-'use client';
+
 
 import LoginForm from '@/components/modules/Auth/LoginForm';
 import ShieldIllustration from '@/components/modules/Auth/ShieldIllustration';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-const LoginPage = () => {
+
+interface loginParams {
+    searchParams: Promise<{ redirect?: string }>;
+}
+
+const LoginPage = async ({ searchParams }: loginParams) => {
+    const params = await searchParams;
+    const redirectPath = params.redirect || null;
+
     return (
         <>
             {/* Left - Branded panel */}
@@ -31,7 +39,7 @@ const LoginPage = () => {
 
             {/* Right - Form panel */}
             <div className="flex items-center justify-center bg-background p-6 md:p-12 animate-[fadeIn_0.5s_ease-out_0.2s_both]">
-                <LoginForm />
+                <LoginForm redirectPath={redirectPath ?? null} />
             </div>
         </>
     );

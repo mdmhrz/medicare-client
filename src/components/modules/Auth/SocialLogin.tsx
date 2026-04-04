@@ -1,18 +1,19 @@
 import { Button } from '@/components/ui/button';
+import { getDefaultDashboardRoute } from '@/lib/authUtils';
 // import { env } from '@/env';
 // import { authClient } from '@/lib/authClient';
 
 import Image from 'next/image';
 
 
-const SocialLogin = () => {
+const SocialLogin = ({ redirectPath }: { redirectPath: string | null }) => {
     const handleGoogleLogin = async () => {
         const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
         const googleAuthUrl = `${baseUrl}/auth/login/google`;
 
         // Redirect the user to the Google authentication URL
-        window.location.href = googleAuthUrl;
+        window.location.href = googleAuthUrl + `?redirect=${encodeURIComponent(redirectPath || getDefaultDashboardRoute("PATIENT"))}`;
     };
 
     return (
