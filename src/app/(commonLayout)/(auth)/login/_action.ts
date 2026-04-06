@@ -45,6 +45,10 @@ export const loginAction = async (payload: IloginPayload, redirectPath?: string)
             throw error;
         }
 
+        if (error.response && error.response.data && error.response.data.message === "Email not verified") {
+            redirect(`/verify-email?email=${encodeURIComponent(payload.email)}`);
+        }
+
 
         return {
             success: false,

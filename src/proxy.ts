@@ -72,12 +72,12 @@ export async function proxy(request: NextRequest) {
     // Verify Email Page
     if (pathname === "/verify-email") {
         if (!isValidAccessToken) {
-            return NextResponse.next();           // guest can access
+            return NextResponse.next(); // guest can access
         }
         if (emailVerified) {
             return NextResponse.redirect(new URL(getDefaultDashboardRoute(userRole!), request.url));
         }
-        return NextResponse.next();               // not verified → allow
+        return NextResponse.next();  // not verified → allow
     }
 
 
