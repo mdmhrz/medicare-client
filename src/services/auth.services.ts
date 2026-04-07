@@ -1,6 +1,7 @@
 'use server'
 
 import { setTokenInCookies } from "@/lib/tokenUtils";
+import { cookies } from "next/headers";
 
 const BASE_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -43,8 +44,13 @@ export async function refreshTokenMiddleware(refreshToken: string): Promise<bool
 }
 
 // get user info (pure function)
-export async function getUserInfo(accessToken: string, sessionToken?: string) {
+export async function getUserInfo() {
     try {
+        const nextCookies = cookies()
+        const accessToken = (await nextCookies).get("accessToken")?.value;
+        const sessionToken = (await nextCookies).get("better-auth.session_token")?.value
+
+
         if (!accessToken) return null;
 
         const response = await fetch(`${BASE_API_URL}/auth/me`, {
