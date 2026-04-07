@@ -1,12 +1,9 @@
 import React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { ResponsiveContainer, PieChart, Pie, Tooltip, Legend, Cell } from 'recharts';
+import { PieChartData } from '@/types/dashboard.types';
 
 
-interface PieChartData {
-    status: string;
-    count: number
-}
 
 
 interface AppointmentPieChartProps {
