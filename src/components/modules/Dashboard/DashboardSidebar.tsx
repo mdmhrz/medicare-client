@@ -3,6 +3,7 @@ import { getNavItemsByRole } from '@/lib/navItems';
 import { getUserInfo } from '@/services/auth.services';
 import { NavSection } from '@/types/dashboard.types';
 import React from 'react';
+import DashboardSidebarContents from './DashboardSidebarContents';
 
 const DashboardSidebar = async () => {
     const userInfo = await getUserInfo()
@@ -10,11 +11,8 @@ const DashboardSidebar = async () => {
     const navItems: NavSection[] = getNavItemsByRole(userInfo.role);
     const dashboardHome = getDefaultDashboardRoute(userInfo.role)
 
-
     return (
-        <div>
-            This is the dashboard sidebar. You can add navigation links or other content here.
-        </div>
+        <DashboardSidebarContents userInfo={userInfo} navItems={navItems} dashboardHome={dashboardHome} />
     );
 };
 

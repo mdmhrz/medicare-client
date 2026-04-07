@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React from 'react';
+import { Separator } from '@/components/ui/separator';
 
 interface NavItemsProps {
     navItems: NavSection[];
@@ -16,8 +17,8 @@ const NavItems = ({ navItems }: NavItemsProps) => {
     const pathname = usePathname();
 
     return (
-        <ScrollArea>
-            <nav>
+        <ScrollArea className='flex-1 min-h-0'>
+            <nav className="h-full">
                 {navItems.map((section, i) => (
                     <div key={i}>
                         {section.title && (
@@ -44,7 +45,10 @@ const NavItems = ({ navItems }: NavItemsProps) => {
                                 </div>
                             );
                         })}
+
+                        {i !== navItems.length - 1 && <Separator className='my-2' />}
                     </div>
+
                 ))}
             </nav>
         </ScrollArea>

@@ -107,7 +107,7 @@ export const adminNavItems: NavSection[] = [
             {
                 title: "Specialties",
                 href: "/admin/dashboard/specialties-management",
-                icon: "BuildingHospital"
+                icon: "FocusIcon"
             },
             {
                 title: "Doctor Schedules",
