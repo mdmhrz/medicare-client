@@ -26,7 +26,6 @@ export async function getNewTokenWithRefreshToken(refreshToken: string): Promise
         const data = await response.json();
         const { accessToken, refreshToken: newRefreshToken, token } = data;
 
-        // set new tokens
         if (accessToken) await setTokenInCookies("accessToken", accessToken);
         if (newRefreshToken) await setTokenInCookies("refreshToken", newRefreshToken);
         if (token) await setTokenInCookies("better-auth.session_token", token, 24 * 60 * 60);
@@ -43,22 +42,24 @@ export async function refreshTokenMiddleware(refreshToken: string): Promise<bool
     return await getNewTokenWithRefreshToken(refreshToken);
 }
 
-// get user info (pure function)
+// get user info
 export async function getUserInfo() {
     try {
-        const nextCookies = cookies()
-        const accessToken = (await nextCookies).get("accessToken")?.value;
-        const sessionToken = (await nextCookies).get("better-auth.session_token")?.value
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get("accessToken")?.value;
+        const sessionToken = cookieStore.get("better-auth.session_token")?.value;
 
+        if (!accessToken && !sessionToken) return null;
 
-        if (!accessToken) return null;
+        const cookieHeader = cookieStore.getAll().map(c => `${c.name}=${c.value}`).join("; ");
 
         const response = await fetch(`${BASE_API_URL}/auth/me`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                Cookie: `accessToken=${accessToken}; better-auth.session_token=${sessionToken}`,
+                Cookie: cookieHeader,
             },
+            cache: "no-store",
         });
 
         if (!response.ok) return null;
