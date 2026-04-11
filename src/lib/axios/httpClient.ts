@@ -1,8 +1,6 @@
 import { ApiResponse } from "@/types/api.types";
 import axios from "axios"
 import { isTokenExpiringSoon } from "../tokenUtils";
-import { cookies, headers } from "next/headers";
-import { getNewTokenWithRefreshToken } from "@/services/auth.services";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -10,45 +8,30 @@ if (!API_BASE_URL) {
     throw new Error("API_BASE_URL is not defined in evironment variables")
 }
 
+const getCookie = (name: string): string | undefined => {
+    if (typeof document === 'undefined') return undefined;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
+    return undefined;
+};
 
-
-async function tryRefreshToken(refreshToken: string, accessToken: string): Promise<void> {
-    if (!isTokenExpiringSoon(accessToken)) {
-        return;
-    }
-
-    const requestHeader = await headers();
-
-    if (requestHeader.get("x-token-refreshed") === "1") {
-        return;
-    }
-
-    try {
-        await getNewTokenWithRefreshToken(refreshToken);
-    } catch (error) {
-        console.error("Error refreshing token:", error);
-    }
-}
+const getAllCookies = (): string => {
+    if (typeof document === 'undefined') return '';
+    return document.cookie;
+};
 
 const axiosInstance = async () => {
-    const cookieStore = await cookies()
-
-    const refreshToken = cookieStore.get("refreshToken")?.value;
-    const accessToken = cookieStore.get("accessToken")?.value;
-
-    if (refreshToken && accessToken) {
-        await tryRefreshToken(refreshToken, accessToken);
-    }
-
-    const cookieHeader = cookieStore.getAll().map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
+    const refreshToken = getCookie("refreshToken");
+    const accessToken = getCookie("accessToken");
 
     const instance = axios.create({
         baseURL: API_BASE_URL,
         timeout: 30000,
         headers: {
             "Content-Type": "application/json",
-            Cookie: cookieHeader
-        }
+        },
+        withCredentials: true
     })
 
     return instance;

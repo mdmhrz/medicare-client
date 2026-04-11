@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
-import { getDoctors } from '@/app/(commonLayout)/consultation/doctor/_actions';
+
 import Loading from '@/app/loading';
 import { useQuery } from '@tanstack/react-query';
-import React from 'react';
+import { getDoctors } from '@/services/doctor.services';
 
 const DoctorsList = () => {
 
@@ -12,7 +12,7 @@ const DoctorsList = () => {
         queryFn: () => getDoctors()
     });
 
-    console.log(data);
+    // console.log(data);
 
     if (isLoading) return <Loading></Loading>;
     if (!data?.data) return <div>No doctors found</div>;
