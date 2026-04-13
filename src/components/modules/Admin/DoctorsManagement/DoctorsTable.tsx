@@ -6,6 +6,7 @@ import { getDoctors } from "@/services/doctor.services";
 import { IDoctor } from "@/types/doctor.types";
 import { useQuery } from "@tanstack/react-query";
 import { useReactTable, getCoreRowModel, flexRender, ColumnDef } from "@tanstack/react-table";
+import { doctorColumns } from "./doctorsColumns";
 
 
 export default function DoctorsTable() {
@@ -30,12 +31,7 @@ export default function DoctorsTable() {
         console.log(doctor);
     }
 
-    const doctorColumns: ColumnDef<IDoctor>[] = [
-        { accessorKey: "name", header: "Name" },
-        { accessorKey: "specialization", header: "Specialization" },
-        { accessorKey: "experience", header: "Experience" },
-        { accessorKey: "rating", header: "Rating" }
-    ]
+    
 
 
     const { getHeaderGroups, getRowModel } = useReactTable({

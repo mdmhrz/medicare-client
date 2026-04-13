@@ -126,9 +126,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
@@ -139,6 +141,7 @@
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -149,16 +152,62 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translate(0, 0);
   }
+
   50% {
     transform: translate(10px, -15px);
   }
+}
+
+/* Custom Scrollbar */
+.data-table-wrapper {
+  width: 100%;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+
+.data-table-wrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.data-table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 0 12px; /* ← pushes track inward, hides arrow zones */
+}
+
+.data-table-wrapper::-webkit-scrollbar-thumb {
+  background-color: rgb(203 213 225);
+  border-radius: 999px;
+}
+
+.data-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(199, 207, 219);
+}
+
+.data-table-wrapper::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.data-table-wrapper::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.data-table-wrapper [data-slot="table-container"] {
+  min-width: max-content;
+  overflow: visible;
 }

@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { MoreHorizontal, Eye, Pencil, Trash2, Inbox } from "lucide-react";
+import { MoreHorizontal, Eye, Pencil, Trash2, Inbox, Settings2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface DataTableActions<TData> {
     onView?: (data: TData) => void;
     onEdit?: (data: TData) => void;
     onDelete?: (data: TData) => void;
 }
-
 
 interface DataTableProps<TData> {
     data: TData[];
@@ -28,122 +28,182 @@ export default function DataTable<TData>({
     isLoading
 }: DataTableProps<TData>) {
 
-    const tableCoumns: ColumnDef<TData>[] = actions ? [...columns, {
+    const tableColumns: ColumnDef<TData>[] = actions ? [...columns, {
         id: 'actions',
-        header: 'Actions',
+        header: () => (
+            <div className="flex items-center gap-2">
+                <Settings2 className="h-4 w-4 text-muted-foreground" />
+                <span>Actions</span>
+            </div>
+        ),
         cell: ({ row }) => {
             return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                        >
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                        className=""
-                        align="end"
-                    >
-
-                        {/* View */}
-                        {actions?.onView &&
-                            <DropdownMenuItem
-                                className="cursor-pointer flex items-center gap-2 hover:bg-gray-100"
-                                onClick={() => actions.onView?.(row.original)}
+                <div className="flex items-center justify-center">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="focus:outline-none flex items-center justify-center" asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="bg-accent shadow-sm border h-8 w-8 data-[state=open]:bg-accent hover:bg-accent/50 transition-colors"
                             >
-                                <Eye />
-                                <span>View</span>
-                            </DropdownMenuItem>
-                        }
-
-                        {/* Edit */}
-                        {actions?.onEdit && <DropdownMenuItem
-                            className="cursor-pointer flex items-center gap-2 hover:bg-gray-100"
-                            onClick={() => actions.onEdit?.(row.original)}
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                            align="end"
+                            className="w-[160px] border-border/50 shadow-lg"
                         >
-                            <Pencil />
-                            <span>Edit</span>
-                        </DropdownMenuItem>
-                        }
-
-                        {/* Delete */}
-                        {actions?.onDelete && <DropdownMenuItem
-                            className="cursor-pointer flex items-center gap-2 hover:bg-gray-100"
-                            onClick={() => actions.onDelete?.(row.original)}
-                        >
-                            <Trash2 className="text-red-500" />
-                            <span>Delete</span>
-                        </DropdownMenuItem>
-                        }
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                            {actions?.onView && (
+                                <>
+                                    <DropdownMenuItem
+                                        className="cursor-pointer flex items-center gap-2 focus:bg-accent/50 transition-colors"
+                                        onClick={() => actions.onView?.(row.original)}
+                                    >
+                                        <Eye className="h-4 w-4 text-muted-foreground" />
+                                        <span>View</span>
+                                    </DropdownMenuItem>
+                                    {actions.onEdit && <DropdownMenuSeparator className="bg-border/50" />}
+                                </>
+                            )}
+                            {actions?.onEdit && (
+                                <>
+                                    <DropdownMenuItem
+                                        className="cursor-pointer flex items-center gap-2 focus:bg-accent/50 transition-colors"
+                                        onClick={() => actions.onEdit?.(row.original)}
+                                    >
+                                        <Pencil className="h-4 w-4 text-muted-foreground" />
+                                        <span>Edit</span>
+                                    </DropdownMenuItem>
+                                    {actions.onDelete && <DropdownMenuSeparator className="bg-border/50" />}
+                                </>
+                            )}
+                            {actions?.onDelete && (
+                                <DropdownMenuItem
+                                    className="cursor-pointer flex items-center gap-2 focus:bg-destructive/10 focus:text-destructive transition-colors"
+                                    onClick={() => actions.onDelete?.(row.original)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span>Delete</span>
+                                </DropdownMenuItem>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             )
         }
     }] : columns;
 
     const { getHeaderGroups, getRowModel } = useReactTable({
         data,
-        columns: tableCoumns,
+        columns: tableColumns,
         getCoreRowModel: getCoreRowModel(),
-    })
+    });
 
-
-    const columnCount = tableCoumns.length;
-    const skeletonRowCount = Math.max(10, data.length);
+    const columnCount = tableColumns.length;
+    const skeletonRowCount = Math.max(8, data.length);
 
     return (
-        <div className="rounded-md border">
-            <Table>
-                <TableHeader>
-                    {getHeaderGroups().map(headerGroup => (
-                        <TableRow key={headerGroup.id}>
-                            {headerGroup.headers.map(header => (
-                                <TableHead key={header.id}>
-                                    {flexRender(header.column.columnDef.header, header.getContext())}
-                                </TableHead>
+        <div className="w-full">
+            <div
+                className="relative w-full rounded-xl bg-card overflow-clip"
+                style={{
+                    boxShadow: '0 1px 3px rgb(0 0 0 / 0.08), 0 0 0 1px rgb(0 0 0 / 0.06)'
+                }}
+            >
+                {/* Primary color top border accent */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary/40" />
+
+                <div className="data-table-wrapper">
+                    <Table className="min-w-full">
+                        <TableHeader>
+                            {getHeaderGroups().map(headerGroup => (
+                                <TableRow
+                                    key={headerGroup.id}
+                                    className="hover:bg-transparent border-b border-border/60 bg-primary/5"
+                                >
+                                    {headerGroup.headers.map(header => (
+                                        <TableHead
+                                            key={header.id}
+                                            className="h-12 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground first:pl-5 last:pr-5"
+                                        >
+                                            {flexRender(header.column.columnDef.header, header.getContext())}
+                                        </TableHead>
+                                    ))}
+                                </TableRow>
                             ))}
-                        </TableRow>
-                    ))}
-                </TableHeader>
-                <TableBody>
-                    {isLoading ? (
-                        // Skeleton rows
-                        Array.from({ length: skeletonRowCount }).map((_, index) => (
-                            <TableRow key={`skeleton-${index}`}>
-                                {Array.from({ length: columnCount }).map((_, cellIndex) => (
-                                    <TableCell key={`skeleton-cell-${cellIndex}`}>
-                                        <Skeleton className="h-4 w-full" />
+                        </TableHeader>
+                        <TableBody className="[&_tr:last-child]:border-0">
+                            {isLoading ? (
+                                Array.from({ length: skeletonRowCount }).map((_, index) => (
+                                    <TableRow
+                                        key={`skeleton-${index}`}
+                                        className={cn(
+                                            "border-b border-border/30 hover:bg-transparent",
+                                            index % 2 === 0 && "bg-muted/[0.02]"
+                                        )}
+                                    >
+                                        {Array.from({ length: columnCount }).map((_, cellIndex) => (
+                                            <TableCell
+                                                key={`skeleton-cell-${cellIndex}`}
+                                                className="px-4 py-4 first:pl-5 last:pr-5"
+                                            >
+                                                <Skeleton
+                                                    className={cn(
+                                                        "h-4 w-full bg-muted/50",
+                                                        cellIndex === columnCount - 1 ? "w-16" : ""
+                                                    )}
+                                                />
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : getRowModel().rows.length ? (
+                                getRowModel().rows.map((row, index) => (
+                                    <TableRow
+                                        key={row.id}
+                                        className={cn(
+                                            "border-b border-border/30 transition-colors duration-150",
+                                            "hover:bg-primary/[0.03]",
+                                            index % 2 === 0 && "bg-muted/[0.02]"
+                                        )}
+                                    >
+                                        {row.getVisibleCells().map(cell => (
+                                            <TableCell
+                                                key={cell.id}
+                                                className="px-4 py-3.5 align-middle text-sm first:pl-5 last:pr-5"
+                                            >
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow className="hover:bg-transparent">
+                                    <TableCell colSpan={columnCount} className="h-80">
+                                        <div className="flex flex-col items-center justify-center gap-5 py-14">
+                                            <div className="relative">
+                                                <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl" />
+                                                <div className="relative bg-muted/60 rounded-full p-7 border border-border/50">
+                                                    <Inbox className="h-11 w-11 text-muted-foreground/60" />
+                                                </div>
+                                            </div>
+                                            <div className="text-center space-y-1.5">
+                                                <p className="text-sm font-semibold text-foreground">
+                                                    {emptyMessage ?? "No data found"}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    There are no records to display at this time
+                                                </p>
+                                            </div>
+                                        </div>
                                     </TableCell>
-                                ))}
-                            </TableRow>
-                        ))
-                    ) : getRowModel().rows.length ? (
-                        // Data rows
-                        getRowModel().rows.map(row => (
-                            <TableRow key={row.id}>
-                                {row.getVisibleCells().map(cell => (
-                                    <TableCell key={cell.id}>
-                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))
-                    ) : (
-                        // Empty state
-                        <TableRow>
-                            <TableCell colSpan={columnCount} className="h-24 text-center">
-                                <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                                    <Inbox className="h-8 w-8" />
-                                    <span>{emptyMessage || "No data found"}</span>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
         </div>
-    )
+    );
 }
