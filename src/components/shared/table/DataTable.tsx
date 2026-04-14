@@ -2,9 +2,11 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from "@tanstack/react-table";
+import { ColumnDef, flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
 import { MoreHorizontal, Eye, Pencil, Trash2, Inbox, Settings2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Pagination from "@/components/shared/pagination/Pagination";
+import Search from "@/components/shared/search/Search";
 
 interface DataTableActions<TData> {
     onView?: (data: TData) => void;
@@ -22,6 +24,17 @@ interface DataTableProps<TData> {
         state: SortingState;
         onSortingChange: (state: SortingState) => void;
     }
+    pagination?: {
+        state: PaginationState;
+        onPaginationChange: (state: PaginationState) => void;
+        pageCount?: number;
+        totalItems?: number;
+    }
+    search?: {
+        value: string;
+        onChange: (value: string) => void;
+        placeholder?: string;
+    }
 }
 
 export default function DataTable<TData>({
@@ -31,6 +44,8 @@ export default function DataTable<TData>({
     emptyMessage,
     isLoading,
     sorting,
+    pagination,
+    search,
 }: DataTableProps<TData>) {
 
     const tableColumns: ColumnDef<TData>[] = actions ? [...columns, {
@@ -100,21 +115,31 @@ export default function DataTable<TData>({
         }
     }] : columns;
 
-    const { getHeaderGroups, getRowModel } = useReactTable({
+    const { getHeaderGroups, getRowModel, getPageCount } = useReactTable({
         data,
         columns: tableColumns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
         manualSorting: Boolean(sorting),
+        manualPagination: Boolean(pagination),
         onSortingChange: sorting ? ((updater) => {
             const currentSorting = sorting.state;
             // @ts-ignore
             const newSorting = typeof updater === 'function' ? updater(currentSorting) : updater;
             sorting.onSortingChange(newSorting);
         }) : undefined as any,
+        onPaginationChange: pagination ? ((updater) => {
+            const currentPagination = pagination.state;
+            // @ts-ignore
+            const newPagination = typeof updater === 'function' ? updater(currentPagination) : updater;
+            pagination.onPaginationChange(newPagination);
+        }) : undefined as any,
         state: {
-            ...sorting ? { sorting: sorting.state } : {}
-        }
+            ...sorting ? { sorting: sorting.state } : {},
+            ...pagination ? { pagination: pagination.state } : {}
+        },
+        pageCount: pagination?.pageCount
     });
 
     const columnCount = tableColumns.length;
@@ -122,6 +147,18 @@ export default function DataTable<TData>({
 
     return (
         <div className="w-full">
+            {/* Search Bar */}
+            {search && (
+                <div className="mb-4">
+                    <Search
+                        value={search.value}
+                        onChange={search.onChange}
+                        placeholder={search.placeholder}
+                        className={"max-w-md"}
+                    />
+                </div>
+            )}
+
             <div
                 className="relative w-full rounded-xl bg-card overflow-clip"
                 style={{
@@ -244,6 +281,20 @@ export default function DataTable<TData>({
                         </TableBody>
                     </Table>
                 </div>
+
+                {/* Pagination */}
+                {pagination && (
+                    <div className="px-4 py-4 border-t border-border/30">
+                        <Pagination
+                            currentPage={pagination.state.pageIndex + 1}
+                            totalPages={pagination.pageCount || getPageCount()}
+                            pageSize={pagination.state.pageSize}
+                            onPageChange={(page) => pagination.onPaginationChange({ pageIndex: page - 1, pageSize: pagination.state.pageSize })}
+                            onPageSizeChange={(pageSize) => pagination.onPaginationChange({ pageIndex: 0, pageSize })}
+                            totalItems={pagination.totalItems}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
