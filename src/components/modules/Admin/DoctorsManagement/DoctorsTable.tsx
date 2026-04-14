@@ -1,13 +1,16 @@
 'use client'
 
-import React from "react";
+import React, { useMemo } from "react";
 import DataTable from "@/components/shared/table/DataTable";
 import { getDoctors } from "@/services/doctor.services";
+import { getSpecialties, Specialty } from "@/services/specialty.services";
 import { IDoctor } from "@/types/doctor.types";
 import { useQuery } from "@tanstack/react-query";
 import { PaginationState, SortingState } from "@tanstack/react-table";
 import { useRouter, useSearchParams } from "next/navigation";
 import { doctorColumns } from "./doctorsColumns";
+import Filter, { FilterConfig } from "@/components/shared/filter/Filter";
+import { Gender } from "@/types/doctor.types";
 
 
 export default function DoctorsTable({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
@@ -31,6 +34,30 @@ export default function DoctorsTable({ searchParams }: { searchParams: { [key: s
 
     // Initialize search state from URL params
     const [searchTerm, setSearchTerm] = React.useState(searchParamsObj.get('searchTerm') || '');
+
+    // Fetch specialties for filter
+    const { data: specialtiesResponse, isPending: isSpecialtiesLoading } = useQuery({
+        queryKey: ['specialties'],
+        queryFn: () => getSpecialties(),
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
+
+    const specialties = Array.isArray(specialtiesResponse) ? specialtiesResponse : specialtiesResponse?.data || [];
+
+    // Initialize filter state from URL params
+    const [genderFilter, setGenderFilter] = React.useState<string>(
+        searchParamsObj.get('gender') || ''
+    );
+    const [specialtyFilter, setSpecialtyFilter] = React.useState<string[]>(
+        searchParamsObj.get('specialties')?.split(',') || []
+    );
+    const [appointmentFeeFilter, setAppointmentFeeFilter] = React.useState<{
+        operator: string;
+        value: number;
+    }>({
+        operator: searchParamsObj.get('appointmentFee[operator]') || 'lte',
+        value: parseInt(searchParamsObj.get('appointmentFee') || '0', 10)
+    });
 
     const { data: doctorDataResponse, isLoading } = useQuery({
         queryKey: ['doctors', searchParams],
@@ -95,6 +122,98 @@ export default function DoctorsTable({ searchParams }: { searchParams: { [key: s
         router.push(`?${params.toString()}`);
     };
 
+    const handleFilterChange = (field: string, value: any, operator?: string) => {
+        const params = new URLSearchParams(searchParamsObj.toString());
+
+        if (field === 'gender') {
+            setGenderFilter(value);
+            if (value) {
+                params.set('gender', value);
+            } else {
+                params.delete('gender');
+            }
+        } else if (field === 'specialties') {
+            setSpecialtyFilter(value);
+            if (value && value.length > 0) {
+                params.set('specialties', value.join(','));
+            } else {
+                params.delete('specialties');
+            }
+        } else if (field === 'appointmentFee') {
+            setAppointmentFeeFilter({
+                operator: operator || 'lte',
+                value: value
+            });
+            if (value !== undefined && value !== null && value !== 0) {
+                params.set(`appointmentFee[${operator || 'lte'}]`, value.toString());
+                params.delete('appointmentFee');
+            } else {
+                params.delete('appointmentFee[lte]');
+                params.delete('appointmentFee[gt]');
+                params.delete('appointmentFee[lt]');
+                params.delete('appointmentFee[gte]');
+            }
+        }
+
+        // Reset to first page when filtering
+        params.set('page', '1');
+        router.push(`?${params.toString()}`);
+    };
+
+    const handleFilterRemove = (field: string) => {
+        const params = new URLSearchParams(searchParamsObj.toString());
+
+        if (field === 'gender') {
+            setGenderFilter('');
+            params.delete('gender');
+        } else if (field === 'specialties') {
+            setSpecialtyFilter([]);
+            params.delete('specialties');
+        } else if (field === 'appointmentFee') {
+            setAppointmentFeeFilter({ operator: 'lte', value: 0 });
+            params.delete('appointmentFee[lte]');
+            params.delete('appointmentFee[gt]');
+            params.delete('appointmentFee[lt]');
+            params.delete('appointmentFee[gte]');
+        }
+
+        // Reset to first page when removing filter
+        params.set('page', '1');
+        router.push(`?${params.toString()}`);
+    };
+
+    // Build filter configs - useMemo to ensure reactivity when specialties load
+    const filterConfigs: FilterConfig[] = useMemo(() => [
+        {
+            type: 'single' as const,
+            field: 'gender',
+            label: 'Gender',
+            options: [
+                { value: Gender.MALE, label: 'Male' },
+                { value: Gender.FEMALE, label: 'Female' },
+                { value: Gender.OTHER, label: 'Other' }
+            ],
+            value: genderFilter
+        },
+        {
+            type: 'multi' as const,
+            field: 'specialties',
+            label: 'Specialties',
+            options: specialties.map(s => ({ value: s.id, label: s.title })),
+            values: specialtyFilter,
+            isLoading: isSpecialtiesLoading
+        },
+        {
+            type: 'range' as const,
+            field: 'appointmentFee',
+            label: 'Appointment Fee',
+            operator: appointmentFeeFilter.operator as any,
+            value: appointmentFeeFilter.value,
+            minValue: 0,
+            maxValue: 10000
+        }
+    ], [specialties, specialtyFilter, genderFilter, appointmentFeeFilter, isSpecialtiesLoading]);
+
     return (
         <div>
             <DataTable
@@ -115,6 +234,11 @@ export default function DoctorsTable({ searchParams }: { searchParams: { [key: s
                     value: searchTerm,
                     onChange: handleSearchChange,
                     placeholder: "Search doctors..."
+                }}
+                filters={{
+                    configs: filterConfigs,
+                    onFilterChange: handleFilterChange,
+                    onFilterRemove: handleFilterRemove
                 }}
                 pagination={
                     meta ? {

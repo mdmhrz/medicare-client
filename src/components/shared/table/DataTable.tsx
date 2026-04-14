@@ -7,6 +7,7 @@ import { MoreHorizontal, Eye, Pencil, Trash2, Inbox, Settings2, ArrowUp, ArrowDo
 import { cn } from "@/lib/utils";
 import Pagination from "@/components/shared/pagination/Pagination";
 import Search from "@/components/shared/search/Search";
+import Filter, { FilterConfig } from "@/components/shared/filter/Filter";
 
 interface DataTableActions<TData> {
     onView?: (data: TData) => void;
@@ -35,6 +36,11 @@ interface DataTableProps<TData> {
         onChange: (value: string) => void;
         placeholder?: string;
     }
+    filters?: {
+        configs: FilterConfig[];
+        onFilterChange: (field: string, value: any, operator?: string) => void;
+        onFilterRemove: (field: string) => void;
+    }
 }
 
 export default function DataTable<TData>({
@@ -46,6 +52,7 @@ export default function DataTable<TData>({
     sorting,
     pagination,
     search,
+    filters,
 }: DataTableProps<TData>) {
 
     const tableColumns: ColumnDef<TData>[] = actions ? [...columns, {
@@ -147,17 +154,34 @@ export default function DataTable<TData>({
 
     return (
         <div className="w-full">
-            {/* Search Bar */}
-            {search && (
-                <div className="mb-4">
-                    <Search
-                        value={search.value}
-                        onChange={search.onChange}
-                        placeholder={search.placeholder}
-                        className={"max-w-md"}
-                    />
-                </div>
-            )}
+            <div className="flex items-center justify-between">
+
+
+                {/* Search Bar */}
+                {search && (
+                    <div className="mb-4">
+                        <Search
+                            value={search.value}
+                            onChange={search.onChange}
+                            placeholder={search.placeholder}
+                            className={"max-w-md"}
+                        />
+                    </div>
+                )}
+
+                {/* Filters */}
+                {filters && filters.configs.length > 0 && (
+                    <div className="mb-4">
+                        
+
+                        <Filter
+                            filters={filters.configs}
+                            onFilterChange={filters.onFilterChange}
+                            onFilterRemove={filters.onFilterRemove}
+                        />
+                    </div>
+                )}
+            </div>
 
             <div
                 className="relative w-full rounded-xl bg-card overflow-clip"
