@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import DataTable from "@/components/shared/table/DataTable";
 import { getDoctors } from "@/services/doctor.services";
 import { getSpecialties, Specialty } from "@/services/specialty.services";
@@ -11,12 +11,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { doctorColumns } from "./doctorsColumns";
 import Filter, { FilterConfig } from "@/components/shared/filter/Filter";
 import { Gender } from "@/types/doctor.types";
-
+import Modal from "@/components/shared/modal/Modal";
+import CreateDoctorForm from "./CreateDoctorForm";
+import { toast } from 'sonner';
 
 export default function DoctorsTable({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
 
     const router = useRouter();
     const searchParamsObj = useSearchParams();
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [editingDoctor, setEditingDoctor] = useState<IDoctor | null>(null);
 
     // Initialize sorting state from URL params
     const [sorting, setSorting] = React.useState<SortingState>([
@@ -72,11 +76,23 @@ export default function DoctorsTable({ searchParams }: { searchParams: { [key: s
     }
 
     const handleEdit = (doctor: IDoctor) => {
-        console.log(doctor);
+        setEditingDoctor(doctor);
+        setIsCreateModalOpen(true);
     }
 
     const handleDelete = (doctor: IDoctor) => {
         console.log(doctor);
+    }
+
+    const handleCreate = () => {
+        setEditingDoctor(null);
+        setIsCreateModalOpen(true);
+    }
+
+    const handleCreateSuccess = () => {
+        setIsCreateModalOpen(false);
+        setEditingDoctor(null);
+        toast.success(editingDoctor ? 'Doctor updated successfully!' : 'Doctor created successfully!');
     }
 
     const handleSortingChange = (newSorting: SortingState) => {
@@ -240,6 +256,7 @@ export default function DoctorsTable({ searchParams }: { searchParams: { [key: s
                     onFilterChange: handleFilterChange,
                     onFilterRemove: handleFilterRemove
                 }}
+                onCreate={handleCreate}
                 pagination={
                     meta ? {
                         state: pagination,
@@ -249,6 +266,16 @@ export default function DoctorsTable({ searchParams }: { searchParams: { [key: s
                     } : undefined
                 }
             />
+            <Modal
+                open={isCreateModalOpen}
+                onOpenChange={(open) => {
+                    setIsCreateModalOpen(open);
+                    if (!open) setEditingDoctor(null);
+                }}
+                title={editingDoctor ? "Edit Doctor" : "Create New Doctor"}
+            >
+                <CreateDoctorForm onSuccess={handleCreateSuccess} doctor={editingDoctor} />
+            </Modal>
         </div>
     )
 }

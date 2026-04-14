@@ -3,7 +3,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ColumnDef, flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
-import { MoreHorizontal, Eye, Pencil, Trash2, Inbox, Settings2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { MoreHorizontal, Eye, Pencil, Trash2, Inbox, Settings2, ArrowUp, ArrowDown, ArrowUpDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Pagination from "@/components/shared/pagination/Pagination";
 import Search from "@/components/shared/search/Search";
@@ -41,6 +41,7 @@ interface DataTableProps<TData> {
         onFilterChange: (field: string, value: any, operator?: string) => void;
         onFilterRemove: (field: string) => void;
     }
+    onCreate?: () => void;
 }
 
 export default function DataTable<TData>({
@@ -53,6 +54,7 @@ export default function DataTable<TData>({
     pagination,
     search,
     filters,
+    onCreate,
 }: DataTableProps<TData>) {
 
     const tableColumns: ColumnDef<TData>[] = actions ? [...columns, {
@@ -169,18 +171,22 @@ export default function DataTable<TData>({
                     </div>
                 )}
 
-                {/* Filters */}
-                {filters && filters.configs.length > 0 && (
-                    <div className="mb-4">
-                        
-
+                {/* Filters and Create Button */}
+                <div className="flex items-center gap-2 mb-4">
+                    {filters && filters.configs.length > 0 && (
                         <Filter
                             filters={filters.configs}
                             onFilterChange={filters.onFilterChange}
                             onFilterRemove={filters.onFilterRemove}
                         />
-                    </div>
-                )}
+                    )}
+                    {onCreate && (
+                        <Button variant="default" size="sm" className="h-8" onClick={onCreate}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Create Doctor
+                        </Button>
+                    )}
+                </div>
             </div>
 
             <div

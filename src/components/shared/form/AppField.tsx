@@ -15,6 +15,7 @@ type AppFieldProps = {
     className?: string;
     disabled?: boolean;
     onChange?: (value: string) => void;
+    required?: boolean;
 
     // Advanced flexibility
     as?: React.ElementType;
@@ -62,6 +63,7 @@ const AppField = ({
     className = "",
     disabled = false,
     onChange,
+    required = false,
     as,
 }: AppFieldProps) => {
     const Component = as || Input;
@@ -86,6 +88,7 @@ const AppField = ({
                     )}
                 >
                     {label}
+                    {required && <span className="text-destructive ">*</span>}
                 </Label>
                 {labelAppend}
             </div>
