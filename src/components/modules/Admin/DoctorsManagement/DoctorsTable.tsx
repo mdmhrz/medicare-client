@@ -5,7 +5,7 @@ import DataTable from "@/components/shared/table/DataTable";
 import { getDoctors } from "@/services/doctor.services";
 import { getSpecialties, Specialty } from "@/services/specialty.services";
 import { IDoctor } from "@/types/doctor.types";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PaginationState, SortingState } from "@tanstack/react-table";
 import { useRouter, useSearchParams } from "next/navigation";
 import { doctorColumns } from "./doctorsColumns";
@@ -13,7 +13,20 @@ import Filter, { FilterConfig } from "@/components/shared/filter/Filter";
 import { Gender } from "@/types/doctor.types";
 import Modal from "@/components/shared/modal/Modal";
 import CreateDoctorForm from "./CreateDoctorForm";
+import ViewDoctor from "./ViewDoctor";
 import { toast } from 'sonner';
+import { deleteDoctor } from '@/services/doctor.services';
+import { useMutation } from '@tanstack/react-query';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function DoctorsTable({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
 
@@ -21,6 +34,10 @@ export default function DoctorsTable({ searchParams }: { searchParams: { [key: s
     const searchParamsObj = useSearchParams();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingDoctor, setEditingDoctor] = useState<IDoctor | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [doctorToDelete, setDoctorToDelete] = useState<IDoctor | null>(null);
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [doctorToView, setDoctorToView] = useState<string | null>(null);
 
     // Initialize sorting state from URL params
     const [sorting, setSorting] = React.useState<SortingState>([
@@ -48,6 +65,22 @@ export default function DoctorsTable({ searchParams }: { searchParams: { [key: s
 
     const specialties = Array.isArray(specialtiesResponse) ? specialtiesResponse : specialtiesResponse?.data || [];
 
+    // Delete doctor mutation
+    const queryClient = useQueryClient();
+    const deleteMutation = useMutation({
+        mutationFn: deleteDoctor,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['doctors'] });
+            toast.success('Doctor deleted successfully!');
+            setDeleteDialogOpen(false);
+            setDoctorToDelete(null);
+        },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete doctor';
+            toast.error(errorMessage);
+        }
+    });
+
     // Initialize filter state from URL params
     const [genderFilter, setGenderFilter] = React.useState<string>(
         searchParamsObj.get('gender') || ''
@@ -72,7 +105,8 @@ export default function DoctorsTable({ searchParams }: { searchParams: { [key: s
 
 
     const handleView = (doctor: IDoctor) => {
-        console.log(doctor);
+        setDoctorToView(doctor.id.toString());
+        setViewModalOpen(true);
     }
 
     const handleEdit = (doctor: IDoctor) => {
@@ -81,7 +115,14 @@ export default function DoctorsTable({ searchParams }: { searchParams: { [key: s
     }
 
     const handleDelete = (doctor: IDoctor) => {
-        console.log(doctor);
+        setDoctorToDelete(doctor);
+        setDeleteDialogOpen(true);
+    }
+
+    const handleConfirmDelete = () => {
+        if (doctorToDelete) {
+            deleteMutation.mutate(doctorToDelete.id.toString());
+        }
     }
 
     const handleCreate = () => {
@@ -275,6 +316,41 @@ export default function DoctorsTable({ searchParams }: { searchParams: { [key: s
                 title={editingDoctor ? "Edit Doctor" : "Create New Doctor"}
             >
                 <CreateDoctorForm onSuccess={handleCreateSuccess} doctor={editingDoctor} />
+            </Modal>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the doctor
+                            {doctorToDelete && ` "${doctorToDelete.name}"`} from the system.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleConfirmDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            disabled={deleteMutation.isPending}
+                        >
+                            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* View Doctor Modal */}
+            <Modal
+                open={viewModalOpen}
+                onOpenChange={(open) => {
+                    setViewModalOpen(open);
+                    if (!open) setDoctorToView(null);
+                }}
+                title="Doctor Details"
+            >
+                {doctorToView && <ViewDoctor doctorId={doctorToView} />}
             </Modal>
         </div>
     )
