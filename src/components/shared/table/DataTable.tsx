@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { MoreHorizontal, Eye, Pencil, Trash2, Inbox, Settings2 } from "lucide-react";
+import { ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from "@tanstack/react-table";
+import { MoreHorizontal, Eye, Pencil, Trash2, Inbox, Settings2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DataTableActions<TData> {
@@ -18,6 +18,10 @@ interface DataTableProps<TData> {
     actions?: DataTableActions<TData>;
     emptyMessage?: string;
     isLoading: boolean;
+    sorting?: {
+        state: SortingState;
+        onSortingChange: (state: SortingState) => void;
+    }
 }
 
 export default function DataTable<TData>({
@@ -25,11 +29,13 @@ export default function DataTable<TData>({
     columns,
     actions,
     emptyMessage,
-    isLoading
+    isLoading,
+    sorting,
 }: DataTableProps<TData>) {
 
     const tableColumns: ColumnDef<TData>[] = actions ? [...columns, {
         id: 'actions',
+        enableSorting: false,
         header: () => (
             <div className="flex items-center gap-2">
                 <Settings2 className="h-4 w-4 text-muted-foreground" />
@@ -98,6 +104,17 @@ export default function DataTable<TData>({
         data,
         columns: tableColumns,
         getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        manualSorting: Boolean(sorting),
+        onSortingChange: sorting ? ((updater) => {
+            const currentSorting = sorting.state;
+            // @ts-ignore
+            const newSorting = typeof updater === 'function' ? updater(currentSorting) : updater;
+            sorting.onSortingChange(newSorting);
+        }) : undefined as any,
+        state: {
+            ...sorting ? { sorting: sorting.state } : {}
+        }
     });
 
     const columnCount = tableColumns.length;
@@ -127,7 +144,31 @@ export default function DataTable<TData>({
                                             key={header.id}
                                             className="h-12 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground first:pl-5 last:pr-5"
                                         >
-                                            {flexRender(header.column.columnDef.header, header.getContext())}
+                                            {
+                                                header.isPlaceholder ? null : header.column.getCanSort() ?
+                                                    (
+                                                        <Button
+                                                            variant={"ghost"}
+                                                            className="h-auto p-0 cursor-pointer font-semibold hover:bg-transparent hover:text-inherit focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                            onClick={header.column.getToggleSortingHandler()}
+                                                        >
+                                                            {flexRender(header.column.columnDef.header, header.getContext())}
+
+                                                            {header.column.getIsSorted() === 'asc' ? (
+                                                                <ArrowUp className="h-3 w-3" />
+                                                            ) : header.column.getIsSorted() === 'desc' ? (
+                                                                <ArrowDown className="h-3 w-3" />
+                                                            ) : (
+                                                                <ArrowUpDown className="h-3 w-3 opacity-50" />
+                                                            )}
+                                                        </Button>
+
+                                                    ) : (
+                                                        flexRender(header.column.columnDef.header, header.getContext())
+                                                    )
+                                            }
+
+
                                         </TableHead>
                                     ))}
                                 </TableRow>

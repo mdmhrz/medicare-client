@@ -1,19 +1,31 @@
 'use client'
 
+import React from "react";
 import DataTable from "@/components/shared/table/DataTable";
-import { Table, TableBody, TableHeader, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { getDoctors } from "@/services/doctor.services";
 import { IDoctor } from "@/types/doctor.types";
 import { useQuery } from "@tanstack/react-query";
-import { useReactTable, getCoreRowModel, flexRender, ColumnDef } from "@tanstack/react-table";
+import { SortingState } from "@tanstack/react-table";
+import { useRouter, useSearchParams } from "next/navigation";
 import { doctorColumns } from "./doctorsColumns";
 
 
-export default function DoctorsTable() {
+export default function DoctorsTable({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+
+    const router = useRouter();
+    const searchParamsObj = useSearchParams();
+
+    // Initialize sorting state from URL params
+    const [sorting, setSorting] = React.useState<SortingState>([
+        {
+            id: searchParamsObj.get('sortBy') || '',
+            desc: searchParamsObj.get('sortOrder') === 'desc'
+        }
+    ].filter(s => s.id));
 
     const { data: doctorDataResponse, isLoading } = useQuery({
-        queryKey: ['doctors'],
-        queryFn: () => getDoctors()
+        queryKey: ['doctors', searchParams],
+        queryFn: () => getDoctors(searchParams)
     })
 
     const { data: doctors } = doctorDataResponse || {};
@@ -31,14 +43,22 @@ export default function DoctorsTable() {
         console.log(doctor);
     }
 
-    
+    const handleSortingChange = (newSorting: SortingState) => {
+        setSorting(newSorting);
 
+        // Update URL params
+        const params = new URLSearchParams(searchParamsObj.toString());
 
-    const { getHeaderGroups, getRowModel } = useReactTable({
-        data: doctors || [],
-        columns: doctorColumns,
-        getCoreRowModel: getCoreRowModel(),
-    })
+        if (newSorting.length > 0) {
+            params.set('sortBy', newSorting[0].id);
+            params.set('sortOrder', newSorting[0].desc ? 'desc' : 'asc');
+        } else {
+            params.delete('sortBy');
+            params.delete('sortOrder');
+        }
+
+        router.push(`?${params.toString()}`);
+    };
 
     return (
         <div>
@@ -51,6 +71,10 @@ export default function DoctorsTable() {
                     onView: handleView,
                     onEdit: handleEdit,
                     onDelete: handleDelete
+                }}
+                sorting={{
+                    state: sorting,
+                    onSortingChange: handleSortingChange
                 }}
             />
         </div>
