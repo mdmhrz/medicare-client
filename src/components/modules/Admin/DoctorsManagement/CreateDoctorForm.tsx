@@ -21,7 +21,7 @@ import { Gender, IDoctor } from '@/types/doctor.types'
 import { Lock, User, Mail, Image, Phone, MapPin, FileText, Briefcase, DollarSign, GraduationCap, Building2, Badge } from 'lucide-react'
 import { toast } from 'sonner'
 import { updateDoctor } from '@/services/doctor.services'
-import { updateDoctorZodSchema } from '@/zod/doctor.validation'
+
 
 interface CreateDoctorFormProps {
     onSuccess: () => void

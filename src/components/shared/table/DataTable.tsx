@@ -7,7 +7,7 @@ import { MoreHorizontal, Eye, Pencil, Trash2, Inbox, Settings2, ArrowUp, ArrowDo
 import { cn } from "@/lib/utils";
 import Pagination from "@/components/shared/pagination/Pagination";
 import Search from "@/components/shared/search/Search";
-import Filter, { FilterConfig } from "@/components/shared/filter/Filter";
+import Filter, { FilterConfig, FilterOperator } from "@/components/shared/filter/Filter";
 
 interface DataTableActions<TData> {
     onView?: (data: TData) => void;
@@ -38,10 +38,11 @@ interface DataTableProps<TData> {
     }
     filters?: {
         configs: FilterConfig[];
-        onFilterChange: (field: string, value: any, operator?: string) => void;
+        onFilterChange: (field: string, value: any, operator?: FilterOperator) => void;
         onFilterRemove: (field: string) => void;
     }
     onCreate?: () => void;
+    createButtonLabel?: string;
 }
 
 export default function DataTable<TData>({
@@ -55,6 +56,7 @@ export default function DataTable<TData>({
     search,
     filters,
     onCreate,
+    createButtonLabel,
 }: DataTableProps<TData>) {
 
     const tableColumns: ColumnDef<TData>[] = actions ? [...columns, {
@@ -183,7 +185,7 @@ export default function DataTable<TData>({
                     {onCreate && (
                         <Button variant="default" size="sm" className="h-8" onClick={onCreate}>
                             <Plus className="h-4 w-4 mr-2" />
-                            Create Doctor
+                            {createButtonLabel || 'Create'}
                         </Button>
                     )}
                 </div>
